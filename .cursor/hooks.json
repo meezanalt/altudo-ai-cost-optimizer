@@ -6,6 +6,12 @@
         "command": "node .cursor/hooks/observe.js",
         "matcher": "Read|Grep|Task"
       }
+    ],
+    "beforeReadFile": [
+      {
+        "command": "node .cursor/hooks/before-read.js",
+        "matcher": "Read"
+      }
     ]
   }
 }
