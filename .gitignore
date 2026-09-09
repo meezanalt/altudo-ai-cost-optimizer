@@ -3,3 +3,4 @@ dist/
 .env
 *.log
 altudo-cost-optimizer.log
+large-file/

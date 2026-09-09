@@ -1,6 +1,8 @@
 const fs = require("fs");
 const path = require("path");
 
+const EXPENSIVE_READ_TOKEN_THRESHOLD = 2000;
+
 let input = "";
 
 process.stdin.setEncoding("utf8");
@@ -21,9 +23,13 @@ process.stdin.on("end", () => {
 
     const charCount = content.length;
 
-    // Very rough token estimate for now.
-    // We'll replace this with a better tokenizer later.
+    // Rough estimate only for the POC.
     const estimatedTokens = Math.ceil(charCount / 4);
+
+    const classification =
+      estimatedTokens >= EXPENSIVE_READ_TOKEN_THRESHOLD
+        ? "EXPENSIVE_READ"
+        : "NORMAL_READ";
 
     const logEntry = {
       timestamp: new Date().toISOString(),
@@ -32,6 +38,8 @@ process.stdin.on("end", () => {
       lineCount,
       charCount,
       estimatedTokens,
+      thresholdTokens: EXPENSIVE_READ_TOKEN_THRESHOLD,
+      classification,
       attachmentCount: Array.isArray(event.attachments)
         ? event.attachments.length
         : 0
@@ -47,6 +55,7 @@ process.stdin.on("end", () => {
       JSON.stringify(logEntry, null, 2) + "\n---\n"
     );
 
+    // Detect-only mode: never interfere with Cursor.
     process.stdout.write(
       JSON.stringify({
         permission: "allow"
