@@ -22,14 +22,14 @@ process.stdin.on("end", () => {
       : 0;
 
     const charCount = content.length;
-
-    // Rough estimate only for the POC.
     const estimatedTokens = Math.ceil(charCount / 4);
 
-    const classification =
-      estimatedTokens >= EXPENSIVE_READ_TOKEN_THRESHOLD
-        ? "EXPENSIVE_READ"
-        : "NORMAL_READ";
+    const isExpensive =
+      estimatedTokens >= EXPENSIVE_READ_TOKEN_THRESHOLD;
+
+    const classification = isExpensive
+      ? "EXPENSIVE_READ"
+      : "NORMAL_READ";
 
     const logEntry = {
       timestamp: new Date().toISOString(),
@@ -40,9 +40,7 @@ process.stdin.on("end", () => {
       estimatedTokens,
       thresholdTokens: EXPENSIVE_READ_TOKEN_THRESHOLD,
       classification,
-      attachmentCount: Array.isArray(event.attachments)
-        ? event.attachments.length
-        : 0
+      action: isExpensive ? "BLOCKED_FOR_TEST" : "ALLOWED"
     };
 
     const logFile = path.join(
@@ -55,7 +53,20 @@ process.stdin.on("end", () => {
       JSON.stringify(logEntry, null, 2) + "\n---\n"
     );
 
-    // Detect-only mode: never interfere with Cursor.
+    if (isExpensive) {
+      process.stdout.write(
+        JSON.stringify({
+          permission: "deny",
+          message:
+            `Altudo AI Cost Optimizer blocked a large file read ` +
+            `(~${estimatedTokens.toLocaleString()} estimated tokens). ` +
+            `Use the optimized bulk-read path instead of reading the entire file.`
+        })
+      );
+
+      return;
+    }
+
     process.stdout.write(
       JSON.stringify({
         permission: "allow"
@@ -69,6 +80,7 @@ process.stdin.on("end", () => {
       );
     } catch {}
 
+    // Always fail open during POC.
     process.stdout.write(
       JSON.stringify({
         permission: "allow"
