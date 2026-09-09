@@ -54,18 +54,20 @@ process.stdin.on("end", () => {
     );
 
     if (isExpensive) {
-      process.stdout.write(
-        JSON.stringify({
-          permission: "deny",
-          message:
-            `Altudo AI Cost Optimizer blocked a large file read ` +
-            `(~${estimatedTokens.toLocaleString()} estimated tokens). ` +
-            `Use the optimized bulk-read path instead of reading the entire file.`
-        })
-      );
+  process.stdout.write(
+    JSON.stringify({
+      permission: "deny",
+      message:
+        `Altudo AI Cost Optimizer blocked this full-file read ` +
+        `because it is approximately ${estimatedTokens.toLocaleString()} tokens. ` +
+        `Use the MCP tool "altudo_bulk_read" with file_path="${event.file_path}". ` +
+        `Use its compact structural result first, then perform targeted normal Reads ` +
+        `only for specific line ranges that require deeper inspection.`
+    })
+  );
 
-      return;
-    }
+  return;
+}
 
     process.stdout.write(
       JSON.stringify({

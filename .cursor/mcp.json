@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "altudo-ai-cost-optimizer": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${workspaceFolder}/dist/mcp-server.js"
+      ]
+    }
+  }
+}
